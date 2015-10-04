@@ -12,19 +12,33 @@ public class Main{
     private static String decryptFileName = "Lazarets/SPNet/decrypt.txt";
     private static String encryptFileName = "Lazarets/SPNet/encrypt.txt";
     private static String keyFileName = "Lazarets/SPNet/key.txt";
+
     public static void main(String[] args) {
         SPNet spNet = new SPNet();
         Menu.menu(keyFileName, encryptFileName, decryptFileName, spNet);
     }
 
     static class SPNet implements Decrypt {
+        String[][] Sblocks = {
+                {"1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110"},
+                {"1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101"},
+                {"1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100"},
+                {"1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011"},
+                {"1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010"},
+                {"1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001"},
+                {"1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000"},
+                {"1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111"},
+                {"0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110"},
+                {"0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101"},
+                {"0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100"},
+                {"0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011"},
+                {"0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010"},
+                {"0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001"},
+                {"0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000"},
+                {"0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111"}
+        };
 
-        String[] Sblock = { "1101", "1011", "0100", "0101",
-                            "0000", "1001", "1010", "0111",
-                            "0010", "0011", "0001", "0110",
-                            "1110", "1100", "1000", "1111" };
-
-        ArrayList<String> SBArray = new ArrayList<String>(Arrays.asList(Sblock));
+//        ArrayList<String> SBArray = new ArrayList<String>(Arrays.asList(Sblocks));
 
         String[] Xblock = { "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111"};
 
@@ -32,36 +46,23 @@ public class Main{
 
         @Override
         public void encrypt(String message, String key) {
-            binaryMagic(message, key, true);
+            sPart(message, key, true);
         }
 
         @Override
         public void decrypt(String message, String key) {
-            binaryMagic(message, key, false);
-
+            sPart(message, key, false);
         }
 
-        public void binaryMagic(String message, String key, boolean mode) /* mode == true - зашифровать, else - расшифровать */{
-            int[] letters = new int[message.length()];
-            for (int i = 0; i < letters.length; i++) {
-                letters[i] = message.charAt(i);
-            }
-            String[] binaryCodes = new String[letters.length];
-            for (int i = 0; i < letters.length; i++) {
-                StringBuilder line = new StringBuilder();
-                do {
-                    int temp = letters[i] % 2;
-                    line.append(temp);
-                    letters[i] /= 2;
-                } while (letters[i] != 0);
-                if (line.length() % 4 != 0) {
-                    do {
-                        line.append("0", 0, 1);
-                    } while (line.length() % 4 != 0);
-                }
-                binaryCodes[i] = line.reverse().toString();
+        public void sPart(String message, String key, boolean mode) /* mode == true - зашифровать, else - расшифровать */ {
+            String[] binaryCodes = BinaryParser.stringToBinary(message);
+
+            int[] keys = new int[key.split(" ").length];
+            for (int i = 0; i < keys.length; i++) {
+                keys[i] = Integer.parseInt(key.split(" ")[i]);
             }
 
+            int currentKey = 0;
             for (int i = 0; i < binaryCodes.length; i++) {
                 String[] temp4 = new String[binaryCodes[i].length() / 4];
                 for (int j = 0; j < temp4.length; j++) {
@@ -72,36 +73,34 @@ public class Main{
                             .append(binaryCodes[i].charAt(4 * j + 3));
                     temp4[j] = temp.toString();
                 }
-                if (mode) {
+                if (currentKey >= keys.length) currentKey = 0;
+                ArrayList<String> SBArray = new ArrayList<>(Arrays.asList(Sblocks[keys[currentKey]]));
+                if (mode)
                     for (int j = 0; j < temp4.length; j++) {
                         int tempIndex = XBArray.indexOf(temp4[j]);
-                        temp4[j] = Sblock[tempIndex];
+                        temp4[j] = Sblocks[keys[currentKey]][tempIndex];
                     }
-                } else {
+                else {
                     for (int j = 0; j < temp4.length; j++) {
                         int tempIndex = SBArray.indexOf(temp4[j]);
                         temp4[j] = Xblock[tempIndex];
                     }
                 }
+                currentKey++;
                 StringBuilder resLine = new StringBuilder();
                 for (int j = 0; j < temp4.length; j++) {
                     resLine.append(temp4[j]);
                 }
+
                 binaryCodes[i] = resLine.toString();
             }
 
-            StringBuilder result = new StringBuilder();
-            for (int i = 0; i < binaryCodes.length; i++) {
-                int sum = 0;
-                String rev = new StringBuilder(binaryCodes[i]).reverse().toString();
-                for (int j = 0; j < rev.length(); j++) {
-                    int temp = Integer.parseInt(String.valueOf(rev.charAt(j)));
-                    if (temp % 2 == 1)
-                        sum += Math.pow(2, j);
-                }
-                result.append(Character.valueOf((char) sum));
-            }
-            System.out.println(result.toString());
+            String result = BinaryParser.binaryToString(binaryCodes);
+            System.out.println(result);
+        }
+
+        public void pPart() {
+
         }
     }
 }
