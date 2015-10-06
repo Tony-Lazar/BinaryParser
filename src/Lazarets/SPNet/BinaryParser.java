@@ -25,8 +25,8 @@ public class BinaryParser {
                 letters[i] /= 2;
             } while (letters[i] != 0);          //здесь переводим численное представление символа в двоичный код
 
-            while (line.length() % 4 != 0 && line.length() < 12) {  //делаем длину б.к. кратную 4-ем для возможности дальнейшего шифрования
-                line.append("0", 0, 1);
+            while (line.length() < 12) {  //делаем длину б.к. кратную 4-ем для возможности дальнейшего шифрования
+                line.append("0");
             }
             binaryCodes[i] = line.reverse().toString();
         }

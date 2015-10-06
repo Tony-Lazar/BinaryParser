@@ -27,7 +27,7 @@ public class Main{
                 {"1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010"},
                 {"1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001"},
                 {"1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000"},
-                {"1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111"},
+                {"1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111"}, //
                 {"0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101", "0110"},
                 {"0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100", "0101"},
                 {"0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111", "0000", "0001", "0010", "0011", "0100"},
@@ -40,7 +40,8 @@ public class Main{
 
 //        ArrayList<String> SBArray = new ArrayList<String>(Arrays.asList(Sblocks));
 
-        String[] Xblock = { "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111"};
+        String[] Xblock =
+                {"0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111"};
 
         ArrayList<String> XBArray = new ArrayList<String>(Arrays.asList(Xblock));
 
@@ -61,9 +62,10 @@ public class Main{
             for (int i = 0; i < keys.length; i++) {
                 keys[i] = Integer.parseInt(key.split(" ")[i]);
             }
-
             int currentKey = 0;
             for (int i = 0; i < binaryCodes.length; i++) {
+                if (!mode)
+                    binaryCodes[i] = pPart(binaryCodes[i], keys, false);
                 String[] temp4 = new String[binaryCodes[i].length() / 4];
                 for (int j = 0; j < temp4.length; j++) {
                     StringBuilder temp = new StringBuilder();
@@ -74,33 +76,58 @@ public class Main{
                     temp4[j] = temp.toString();
                 }
                 if (currentKey >= keys.length) currentKey = 0;
-                ArrayList<String> SBArray = new ArrayList<>(Arrays.asList(Sblocks[keys[currentKey]]));
-                if (mode)
-                    for (int j = 0; j < temp4.length; j++) {
+
+                for (int j = 0; j < temp4.length; j++) {
+                    if (currentKey >= keys.length) currentKey = 0;
+                    ArrayList<String> SBArray = new ArrayList<>(Arrays.asList(Sblocks[keys[currentKey]]));
+                    if (mode) {
                         int tempIndex = XBArray.indexOf(temp4[j]);
                         temp4[j] = Sblocks[keys[currentKey]][tempIndex];
-                    }
-                else {
-                    for (int j = 0; j < temp4.length; j++) {
+                    } else {
                         int tempIndex = SBArray.indexOf(temp4[j]);
                         temp4[j] = Xblock[tempIndex];
                     }
+                    currentKey++;
                 }
-                currentKey++;
+
                 StringBuilder resLine = new StringBuilder();
                 for (int j = 0; j < temp4.length; j++) {
                     resLine.append(temp4[j]);
                 }
 
                 binaryCodes[i] = resLine.toString();
+                if (mode)
+                    binaryCodes[i] = pPart(binaryCodes[i], keys, true);
             }
 
             String result = BinaryParser.binaryToString(binaryCodes);
             System.out.println(result);
         }
 
-        public void pPart() {
+        public String pPart(String message, int[] keys, boolean mode) {
+            StringBuilder sb = new StringBuilder(message);
+            int[] newKeys = new int[message.length()];
+            int currentKey = 0;
+            for (int i = 0; i < newKeys.length; i++) {
+                if (currentKey >= keys.length) currentKey = 0;
+                newKeys[i] = keys[currentKey++];
+            }
 
+            if (mode)
+                for (int i = 0; i < sb.length(); i++) {
+                    char temp = sb.charAt(i);
+                    sb.setCharAt(i, sb.charAt(newKeys[i]));
+                    sb.setCharAt(newKeys[i], temp);
+                }
+            else {
+                for (int i = sb.length() - 1; i >= 0; i--) {
+                    char temp = sb.charAt(i);
+                    sb.setCharAt(i, sb.charAt(newKeys[i]));
+                    sb.setCharAt(newKeys[i], temp);
+                }
+            }
+
+            return sb.toString();
         }
     }
 }
