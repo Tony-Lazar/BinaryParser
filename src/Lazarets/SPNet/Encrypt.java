@@ -7,4 +7,5 @@ package Lazarets.SPNet;
  */
 public interface Encrypt {
     void encrypt(String message, String key);
+    void checkKey(String key) throws ReadingKeyException;
 }

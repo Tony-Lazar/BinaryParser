@@ -53,10 +53,14 @@ public class Menu {
                 encryptClass.decrypt(message.toString(), key.toString());
             }
         else if (result.equals("2"))
-            if (mode == 1)
+            if (mode == 1) {
                 menuEncryptFromFile();
-            else
+                encryptClass.encrypt(message.toString(), key.toString());
+            }
+            else {
                 menuDecryptFromFile();
+                encryptClass.decrypt(message.toString(), key.toString());
+            }
         else
             menuFromWhere(mode);
     }
@@ -127,12 +131,17 @@ public class Menu {
         System.out.println("Ключ считывается из файла...");
         try {
             if (new File(keyFileName).exists()) {
-                key.append(new Scanner(new File(keyFileName)).nextLine());
+                Scanner tempScan = new Scanner(new File(keyFileName));
+                while(tempScan.hasNextLine())
+                    key.append(tempScan.nextLine());
             }
+            encryptClass.checkKey(key.toString());
+            System.out.println("Ключ считан успешно!");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+        } catch (ReadingKeyException e) {
+            System.out.println("Ошибка при чтении ключа");
         }
-        System.out.println("Ключ считан успешно!");
     }
 
     private static void writeToFile(StringBuilder message, int mode) {

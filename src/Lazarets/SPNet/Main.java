@@ -1,7 +1,13 @@
 package Lazarets.SPNet;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
 
 /**
  * User: Tony
@@ -9,9 +15,10 @@ import java.util.Arrays;
  * Time: 15:09
  */
 public class Main{
-    private static String decryptFileName = "Lazarets/SPNet/decrypt.txt";
-    private static String encryptFileName = "Lazarets/SPNet/encrypt.txt";
-    private static String keyFileName = "Lazarets/SPNet/key.txt";
+    private static String decryptFileName = "src\\Lazarets\\SPNet\\decrypt.txt";
+    private static String encryptFileName = "src\\Lazarets\\SPNet\\encrypt.txt";
+    private static String keyFileName = "src\\Lazarets\\SPNet\\key.txt";
+    private static String binaryTableFileName = "src\\Lazarets\\SPNet\\binaryBlock.txt";
 
     public static void main(String[] args) {
         SPNet spNet = new SPNet();
@@ -44,6 +51,71 @@ public class Main{
                 {"0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111"};
 
         ArrayList<String> XBArray = new ArrayList<String>(Arrays.asList(Xblock));
+
+        public SPNet() {
+            readBinaryTable();
+        }
+
+        private void readBinaryTable() {
+            try {
+                Scanner tempScan = new Scanner(new File(binaryTableFileName));
+                String key = null;
+                if (tempScan.hasNextLine())
+                     key = tempScan.nextLine();
+                String[] binaryKeys = key.split(" ");
+                String comb = null;
+                if (tempScan.hasNextLine())
+                    comb = tempScan.nextLine();
+                String[] combos = null;
+                try {
+                    checkKey(comb);
+                    combos = comb.split(" ");
+                } catch (ReadingKeyException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                twistBinaryTable(binaryKeys, combos);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void twistBinaryTable(String[] binaryKeys, String[] combos) {
+            String[][] tempSBlocks = new String[16][16];
+            int[] newKeys = new int[binaryKeys.length];
+            int currentKey = 0;
+            for (int i = 0; i < newKeys.length; i++) {
+                if (currentKey >= combos.length) currentKey = 0;
+                newKeys[i] = Integer.parseInt(combos[currentKey++]);
+            }
+
+            tempSBlocks[0] = binaryKeys;
+            for (int i = 1; i < 16; i++) {
+                tempSBlocks[i] = tempSBlocks[i - 1];
+                for (int j = 0; j < binaryKeys.length; j++) {
+                    String temp = tempSBlocks[i][j];
+                    tempSBlocks[i][j] = tempSBlocks[i][newKeys[j]];
+                    tempSBlocks[i][newKeys[j]] = temp;
+                }
+            }
+
+            Sblocks = tempSBlocks;
+        }
+
+        @Override
+        public void checkKey(String key) throws ReadingKeyException {
+            String[] keys = key.split(" ");
+            if (keys.length == 0)
+                throw new ReadingKeyException();
+            for (int i = 0; i < keys.length; i++) {
+                for (int j = 0; j < keys[i].length(); j++) {
+                    if (!Character.isDigit(keys[i].charAt(j)))
+                        throw new ReadingKeyException();
+                }
+                if (Integer.parseInt(keys[i]) > Xblock.length)
+                    throw new ReadingKeyException();
+            }
+        }
 
         @Override
         public void encrypt(String message, String key) {
@@ -101,6 +173,7 @@ public class Main{
             }
 
             String result = BinaryParser.binaryToString(binaryCodes);
+            writeTextToFile(result, mode);
             System.out.println(result);
         }
 
@@ -128,6 +201,22 @@ public class Main{
             }
 
             return sb.toString();
+        }
+
+        public void writeTextToFile(String text, boolean mode) {
+            try {
+                FileWriter fileWriter;
+                if (mode)
+                    fileWriter = new FileWriter(encryptFileName, false);
+                else
+                    fileWriter = new FileWriter(decryptFileName, false);
+                for (int i = 0; i < text.length(); i++) {
+                    fileWriter.write(text.charAt(i));
+                }
+                fileWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
